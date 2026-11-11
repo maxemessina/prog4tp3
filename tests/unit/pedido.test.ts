@@ -47,6 +47,7 @@ describe("Rutas de pedidos", () => {
     const response = await request(app)
       .post("/pedidos")
       .send({
+        mesaId: 4,
         items: [
           { productoId: 1, cantidad: 2 },
           { productoId: 2, cantidad: 3 },
@@ -57,6 +58,7 @@ describe("Rutas de pedidos", () => {
     expect(response.body).toHaveProperty("id");
     expect(response.body.items).toHaveLength(2);
     expect(response.body.total).toBe(5400);
+    expect(response.body.mesaId).toBe(4);
   });
 
   it("POST /pedidos - debería rechazar un pedido vacío", async () => {
@@ -65,6 +67,7 @@ describe("Rutas de pedidos", () => {
       .send({ items: [] });
 
     expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: "Datos del pedido inválidos" });
   });
 
   it("POST /pedidos - debería rechazar cantidades negativas", async () => {
@@ -75,6 +78,31 @@ describe("Rutas de pedidos", () => {
       });
 
     expect(response.status).toBe(400);
+  });
+
+  it("POST /pedidos - debería rechazar una mesa inválida", async () => {
+    const response = await request(app)
+      .post("/pedidos")
+      .send({
+        mesaId: 0,
+        items: [{ productoId: 1, cantidad: 1 }],
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty("error");
+  });
+
+  it("POST /pedidos - debería informar un producto inexistente como error JSON", async () => {
+    const response = await request(app)
+      .post("/pedidos")
+      .send({
+        items: [{ productoId: 999, cantidad: 1 }],
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      error: "Producto con ID 999 no encontrado",
+    });
   });
 
   it("GET /pedidos - debería devolver todos los pedidos", async () => {
@@ -97,6 +125,11 @@ describe("Rutas de pedidos", () => {
 
     expect(response.status).toBe(200);
     expect(response.body.id).toBe(id);
+    expect(response.body).toMatchObject({
+      items: [{ productoId: 1, cantidad: 2 }],
+      estado: "pendiente",
+      total: 3000,
+    });
   });
 
   it("GET /pedidos/:id - debería devolver 404 si el pedido no existe", async () => {

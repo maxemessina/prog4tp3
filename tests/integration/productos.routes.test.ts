@@ -17,6 +17,25 @@ describe("GET /productos", () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(20);
+    expect(response.body[4]).toEqual({
+      id: 5,
+      tipo: "expreso",
+      nombre: "Café expreso Mediano Colombia",
+      tamanio: "Mediano",
+      gramosCafe: 27,
+      variedad: {
+        nombre: "Colombia",
+        descripcion:
+          "Acidez media, cuerpo equilibrado y notas cítricas y florales",
+      },
+      precio: 7360,
+    });
+    expect(response.body[18]).toEqual({
+      id: 19,
+      tipo: "pasteleria",
+      nombre: "Muffin de chocolate",
+      precio: 2500,
+    });
   });
   describe("GET /productos/:id", () => {
   it("devuelve un producto cuando el ID existe", async () => {
@@ -25,6 +44,15 @@ describe("GET /productos", () => {
     expect(response.status).toBe(200);
     expect(response.body.id).toBe(1);
     expect(response.body.nombre).toBe("Café expreso Pocillo Brasil");
+    expect(response.body).toMatchObject({
+      tipo: "expreso",
+      tamanio: "Pocillo",
+      variedad: {
+        nombre: "Brasil",
+        descripcion: expect.any(String),
+      },
+      precio: 5020,
+    });
   });
 
   it("devuelve 400 cuando el ID no es válido", async () => {
@@ -46,4 +74,3 @@ describe("GET /productos", () => {
   });
 });
 });
-
