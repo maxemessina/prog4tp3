@@ -1,29 +1,34 @@
 
 import { Router } from "express";
-import { PedidoService } from "../services/pedidoService";
+import {
+  PedidoService,
+  ProductoNoEncontradoError,
+} from "../services/pedidoService";
 import { pedidoSchema } from "../schemas/pedidoSchema";
 
 export const crearPedidosRouter = (pedidoService: PedidoService) => {
   const router = Router();
 
   // POST /pedidos
-  router.post("/", (req, res) => {
+  router.post("/", (req, res, next) => {
     const resultado = pedidoSchema.safeParse(req.body);
 
     if (!resultado.success) {
-      return res.status(400).json({
-        error: "Datos del pedido inválidos",
-        detalles: resultado.error.issues,
-      });
+      return res.status(400).json({ error: "Datos del pedido inválidos" });
     }
 
     try {
-      const pedido = pedidoService.crearPedido(resultado.data.items);
+      const pedido = pedidoService.crearPedido(
+        resultado.data.items,
+        resultado.data.mesaId,
+      );
       return res.status(201).json(pedido);
     } catch (error) {
-      return res.status(400).json({
-        error: error instanceof Error ? error.message : "Error al crear el pedido",
-      });
+      if (error instanceof ProductoNoEncontradoError) {
+        return res.status(400).json({ error: error.message });
+      }
+
+      return next(error);
     }
   });
 

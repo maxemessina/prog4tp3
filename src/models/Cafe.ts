@@ -1,6 +1,12 @@
 export type TamanoCafe = "Pocillo" | "Mediano" | "Taza grande";
 export type VariedadCafe = "Brasil" | "Colombia" | "Etiopía";
 
+export const descripcionesVariedad: Record<VariedadCafe, string> = {
+  Brasil: "Acidez baja, cuerpo intenso y notas a chocolate y frutos secos",
+  Colombia: "Acidez media, cuerpo equilibrado y notas cítricas y florales",
+  "Etiopía": "Acidez alta, cuerpo ligero y notas florales y frutales",
+};
+
 export const gramosPorTamanoExpreso: Record<TamanoCafe, number> = {
   Pocillo: 18,
   Mediano: 27,

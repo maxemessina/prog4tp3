@@ -4,7 +4,13 @@ import { CafeFiltrado } from "../models/CafeFiltrado";
 import { Muffin } from "../models/Muffin";
 import { TortaSelvaNegra } from "../models/Torta";
 import type { Producto } from "../models/Producto";
-import type { TamanoCafe, VariedadCafe } from "../models/Cafe";
+import {
+  descripcionesVariedad,
+  gramosPorTamanoExpreso,
+  gramosPorTamanoFiltrado,
+  type TamanoCafe,
+  type VariedadCafe,
+} from "../models/Cafe";
 
 const tamanos: TamanoCafe[] = [
   "Pocillo",
@@ -42,4 +48,67 @@ export function listarProductos(): Producto[] {
 }
 export function obtenerProductoPorId(id: number): Producto | undefined {
   return productos.find((producto) => producto.id === id);
+}
+
+export type ProductoResponse =
+  | {
+      id: number;
+      tipo: "expreso" | "filtrado";
+      nombre: string;
+      tamanio: TamanoCafe;
+      gramosCafe: number;
+      variedad: {
+        nombre: VariedadCafe;
+        descripcion: string;
+      };
+      precio: number;
+    }
+  | {
+      id: number;
+      tipo: "pasteleria";
+      nombre: string;
+      precio: number;
+    };
+
+export function serializarProducto(producto: Producto): ProductoResponse {
+  if (producto instanceof CafeExpreso) {
+    return {
+      id: producto.id,
+      tipo: "expreso",
+      nombre: producto.nombre,
+      tamanio: producto.tamano,
+      gramosCafe: gramosPorTamanoExpreso[producto.tamano],
+      variedad: {
+        nombre: producto.variedad,
+        descripcion: descripcionesVariedad[producto.variedad],
+      },
+      precio: producto.calcularPrecio(),
+    };
+  }
+
+  if (producto instanceof CafeFiltrado) {
+    return {
+      id: producto.id,
+      tipo: "filtrado",
+      nombre: producto.nombre,
+      tamanio: producto.tamano,
+      gramosCafe: gramosPorTamanoFiltrado[producto.tamano],
+      variedad: {
+        nombre: producto.variedad,
+        descripcion: descripcionesVariedad[producto.variedad],
+      },
+      precio: producto.calcularPrecio(),
+    };
+  }
+
+  if (producto instanceof Muffin || producto instanceof TortaSelvaNegra) {
+    return {
+      id: producto.id,
+      tipo: "pasteleria",
+      nombre: producto.nombre,
+      precio: producto.calcularPrecio(),
+    };
+  }
+
+  throw new Error(`Tipo de producto no soportado: ${producto.constructor.name}`);
 }

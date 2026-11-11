@@ -1,4 +1,4 @@
-# Reentrega Parcial I — API REST de Cafetería Origen
+# TP3
 
 API REST desarrollada con TypeScript, Express y Zod para consultar el catálogo
 de productos de la cafetería Origen, registrar pedidos y consultar reportes de
@@ -29,6 +29,45 @@ capas y pruebas unitarias y de integración.
 | `GET` | `/pedidos/:id` | Pedido solicitado. |
 | `GET` | `/reportes/facturacion` | Importe total facturado. |
 | `GET` | `/reportes/mas-vendido` | Producto con más unidades vendidas. |
+
+### Contrato para el menú web
+
+`GET /productos` y `GET /productos/:id` devuelven el precio calculado por el
+dominio y un `tipo` explícito. Los cafés incluyen `tamanio`, `gramosCafe` y
+`variedad` con su nombre y descripción; la pastelería usa `tipo: "pasteleria"`.
+Por ejemplo:
+
+```json
+{
+  "id": 5,
+  "tipo": "expreso",
+  "nombre": "Café expreso Mediano Colombia",
+  "tamanio": "Mediano",
+  "gramosCafe": 27,
+  "variedad": {
+    "nombre": "Colombia",
+    "descripcion": "Acidez media, cuerpo equilibrado y notas cítricas y florales"
+  },
+  "precio": 7360
+}
+```
+
+`POST /pedidos` acepta `mesaId` opcional y una lista de ítems. Sin mesa, el
+pedido se considera para retirar en barra:
+
+```json
+{
+  "mesaId": 4,
+  "items": [{ "productoId": 5, "cantidad": 2 }]
+}
+```
+
+La creación y `GET /pedidos/:id` responden con el pedido, su estado y el total
+calculado por la API. Los errores HTTP responden JSON con un campo `error`.
+Con `NODE_ENV=test` se habilitan `POST /__test__/reset` y
+`POST /__test__/seed`: reset limpia pedidos y reinicia sus IDs; seed prepara
+un pedido conocido (mesa 4, un muffin, ID 1). Estas rutas no existen en otros
+entornos.
 
 Los IDs y el body de creación de pedidos se validan. IDs inválidos y pedidos
 con datos incorrectos reciben `400`; los recursos no encontrados reciben

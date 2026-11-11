@@ -5,6 +5,7 @@ export interface PedidoItem {
 
 export interface Pedido {
   id: number;
+  mesaId?: number;
   items: PedidoItem[];
   estado: string;
 }

@@ -5,17 +5,25 @@ interface ProductoLookup {
   obtenerProductoPorId(id: number): Producto | undefined;
 }
 
+export class ProductoNoEncontradoError extends Error {
+  constructor(productoId: number) {
+    super(`Producto con ID ${productoId} no encontrado`);
+    this.name = "ProductoNoEncontradoError";
+  }
+}
+
 export class PedidoService {
   private readonly pedidos: Pedido[] = [];
   private siguienteId = 1;
 
   constructor(private readonly productos: ProductoLookup) {}
 
-  crearPedido(items: PedidoItem[]): PedidoConTotal {
+  crearPedido(items: PedidoItem[], mesaId?: number): PedidoConTotal {
     const total = this.calcularTotalItems(items);
 
     const pedido: Pedido = {
       id: this.siguienteId++,
+      ...(mesaId === undefined ? {} : { mesaId }),
       items: items.map((item) => ({ ...item })),
       estado: "pendiente",
     };
@@ -32,10 +40,25 @@ export class PedidoService {
     return this.pedidos.map((pedido) => this.copiarPedido(pedido));
   }
 
-  obtenerPedidoPorId(id: number): Pedido | undefined {
+  obtenerPedidoPorId(id: number): PedidoConTotal | undefined {
     const pedido = this.pedidos.find((pedido) => pedido.id === id);
 
-    return pedido ? this.copiarPedido(pedido) : undefined;
+    return pedido
+      ? {
+          ...this.copiarPedido(pedido),
+          total: this.calcularTotalPedido(pedido),
+        }
+      : undefined;
+  }
+
+  resetear(): void {
+    this.pedidos.length = 0;
+    this.siguienteId = 1;
+  }
+
+  cargarDatosDePrueba(): void {
+    this.resetear();
+    this.crearPedido([{ productoId: 19, cantidad: 1 }], 4);
   }
 
   calcularFacturacionTotal(): number {
@@ -86,7 +109,7 @@ export class PedidoService {
     const producto = this.productos.obtenerProductoPorId(productoId);
 
     if (!producto) {
-      throw new Error(`Producto con ID ${productoId} no encontrado`);
+      throw new ProductoNoEncontradoError(productoId);
     }
 
     return producto;

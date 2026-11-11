@@ -11,7 +11,7 @@ export function TomaReportesRouter(
     const facturacionTotal =
       pedidoService.calcularFacturacionTotal();
 
-    res.status(200).json({ facturacionTotal });
+    return res.status(200).json({ facturacionTotal });
   });
 
   router.get("/mas-vendido", (_req, res) => {
