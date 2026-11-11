@@ -1,10 +1,25 @@
 import { leerMesaDesdeBusqueda } from "./dominio/mesa";
 import { formatearPrecio } from "./dominio/formatearPrecio";
 import { useMenu } from "./menu/useMenu";
+import SelectorCafe from "./components/SelectorCafe";
+import type { Cafe } from "./schemas/productoSchema";
 
 export default function App() {
   const mesa = leerMesaDesdeBusqueda(window.location.search);
   const { estado, reintentar } = useMenu();
+  const cafes =
+  estado.estado === "listo"
+    ? estado.productos.filter(
+        (producto): producto is Cafe =>
+          producto.tipo === "expreso" || producto.tipo === "filtrado",
+      )
+    : [];
+    const pasteleria =
+  estado.estado === "listo"
+    ? estado.productos.filter(
+        (producto) => producto.tipo === "pasteleria",
+      )
+    : [];
 
   return (
     <main className="container py-4">
@@ -40,19 +55,34 @@ export default function App() {
           </div>
         )}
 
-        {estado.estado === "listo" && (
-          <ul className="list-group">
-            {estado.productos.map((producto) => (
-              <li
-                className="list-group-item d-flex justify-content-between align-items-center"
-                key={producto.id}
-              >
-                <span>{producto.nombre}</span>
-                <span>{formatearPrecio(producto.precio)}</span>
-              </li>
-            ))}
-          </ul>
-        )}
+     {estado.estado === "listo" && (
+  <div>
+    {cafes.length > 0 && (
+      <SelectorCafe
+        cafes={cafes}
+        onAgregar={(cafe) => console.log("Café seleccionado:", cafe)}
+      />
+    )}
+
+    {pasteleria.length > 0 && (
+      <section>
+        <h3>Pastelería</h3>
+
+        <ul className="list-group">
+          {pasteleria.map((producto) => (
+            <li
+              className="list-group-item d-flex justify-content-between align-items-center"
+              key={producto.id}
+            >
+              <span>{producto.nombre}</span>
+              <span>{formatearPrecio(producto.precio)}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+  </div>
+)}
       </section>
     </main>
   );
