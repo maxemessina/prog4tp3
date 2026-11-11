@@ -87,23 +87,22 @@ endpoint de más vendido informa que no hay ventas registradas.
 La respuesta `201 Created` incluye el ID, los items, el estado y el total
 calculado usando el precio de cada producto.
 
-## Organización
+## Organización del repositorio
 
 ```text
-src/
-  app.ts                 # Configura Express y compone la aplicación
-  server.ts              # Valida el puerto e inicia el servidor
-  models/                # Producto, cafés, pastelería y tipos de pedido
-  schemas/
-    pedidoSchema.ts      # Validación del body con Zod
-  services/
-    productoService.ts  # Catálogo en memoria y búsqueda
-    pedidoService.ts    # Pedidos, totales y reportes de ventas
-  routes/                # Endpoints de productos, pedidos y reportes
-tests/
-  unit/                  # Modelos y servicios
-  integration/           # Rutas HTTP y flujo integrado con Supertest
+backend/
+  src/                   # API Express, modelos, rutas y servicios
+  tests/
+    unit/
+    integration/
+  package.json
+frontend/
+  src/                   # Aplicación React y sus pruebas
+  e2e/                   # Recorridos con Playwright
 ```
+
+El backend y el frontend tienen dependencias y comandos independientes. La
+carpeta `frontend/` se completa en las siguientes etapas del TP.
 
 `Producto` define el contrato de precio y los productos concretos lo
 implementan mediante polimorfismo. Los tamaños y variedades de café se
@@ -129,35 +128,32 @@ integración del flujo completo.
 
 ## Instalación y ejecución
 
-Se requiere tener Node.js y npm instalados. Clonar el repositorio y entrar en
-la carpeta del proyecto:
+Se requiere tener Node.js y npm instalados. Para preparar y ejecutar la API:
 
 ```bash
-git clone https://github.com/maxemessina/prog4parcial1reentrega.git
-cd prog4parcial1reentrega
-npm ci
-npm run dev
+npm --prefix backend ci
+npm --prefix backend run dev
 ```
 
 El servidor de desarrollo escucha por defecto en `http://localhost:3000`.
-Para usar otro puerto, configurar la variable `PORT` antes de iniciar la
-aplicación. En PowerShell:
+Para usar otro puerto, configurar `PORT` antes de iniciar la aplicación. En
+PowerShell:
 
 ```powershell
 $env:PORT=3001
-npm run dev
+npm --prefix backend run dev
 ```
 
-### Verificación del proyecto
+### Verificación del backend
 
 | Comando | Descripción |
 |---|---|
-| `npm run dev` | Inicia el servidor de desarrollo. |
-| `npm test` | Ejecuta todas las pruebas con Vitest. |
-| `npm run coverage` | Ejecuta las pruebas y genera el reporte de cobertura. |
-| `npm run typecheck` | Comprueba los tipos de TypeScript. |
-| `npm run build` | Compila TypeScript en `dist/`. |
-| `npm start` | Inicia el servidor compilado. |
+| `npm --prefix backend run dev` | Inicia el servidor de desarrollo. |
+| `npm --prefix backend test` | Ejecuta las pruebas del backend. |
+| `npm --prefix backend run coverage` | Genera el reporte de cobertura. |
+| `npm --prefix backend run typecheck` | Comprueba los tipos de TypeScript. |
+| `npm --prefix backend run build` | Compila TypeScript en `backend/dist/`. |
+| `npm --prefix backend start` | Inicia el servidor compilado. |
 
 ## División del trabajo
 
