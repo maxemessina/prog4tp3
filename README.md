@@ -59,9 +59,12 @@ diseño visual complejo.
   y Sass, esquemas Zod de productos y pedidos, cliente API, lectura de mesa,
   formato de moneda, carga del menú con reintento y pantalla inicial del
   catálogo.
+- **E2E:** Playwright está configurado y tiene un smoke test contra la API real
+  que comprueba el menú de una mesa y el desborde horizontal a 375 px. Falta
+  ampliar el recorrido cuando estén integrados selector, carrito y pedido.
 - **Pendiente:** selector de café, pastelería interactiva, carrito, envío y
-  seguimiento del pedido, pruebas completas de esas funcionalidades, E2E con
-  Playwright y revisión responsive final a 375 px.
+  seguimiento del pedido, pruebas completas de esas funcionalidades y revisión
+  responsive final.
 
 ## Estructura
 
@@ -91,7 +94,7 @@ frontend/
       unit/
       components/
       integration/
-  e2e/                   # Recorridos Playwright (pendiente)
+  e2e/                   # Recorridos Playwright contra la API real
   package.json
 ```
 
@@ -191,7 +194,8 @@ Abrir `http://localhost:5173`. Vite reenvía las rutas de API al backend.
 | `npm --prefix frontend test` | Unitarias, componentes e integración. |
 | `npm --prefix frontend run test:watch` | Vitest interactivo. |
 | `npm --prefix frontend run build` | Verificar TypeScript y compilar a `frontend/dist/`. |
-| `npm --prefix frontend run test:e2e` | E2E con Playwright (pendiente de configurar). |
+| `npm --prefix frontend exec playwright install chromium` | Instalar Chromium para la primera ejecución E2E. |
+| `npm --prefix frontend run test:e2e` | E2E con Playwright y la API real. |
 
 ## División del trabajo
 
@@ -206,8 +210,9 @@ Abrir `http://localhost:5173`. Vite reenvía las rutas de API al backend.
   compartidas del frontend.
 - Integrar las partes del equipo, resolver conflictos y mantener el flujo
   completo ejecutable.
-- Configurar Playwright y el recorrido E2E con la API real; completar la
-  documentación y verificar el ancho de 375 px.
+- Mantener Playwright y completar el recorrido E2E feliz con la API real cuando
+  estén integrados los módulos del equipo; cerrar la documentación y revisión
+  responsive.
 
 ### Valentina Guerrieri — catálogo y selección
 
