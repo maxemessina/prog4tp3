@@ -1,0 +1,25 @@
+$primary: #6f3e2e;
+$secondary: #b87952;
+$success: #44634a;
+$body-bg: #f7f3ed;
+$body-color: #30251f;
+$font-family-sans-serif: "Segoe UI", system-ui, sans-serif;
+$border-radius: 0.75rem;
+$btn-border-radius: 999px;
+
+@import "bootstrap/scss/bootstrap";
+
+html,
+body,
+#root {
+  min-width: 320px;
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
