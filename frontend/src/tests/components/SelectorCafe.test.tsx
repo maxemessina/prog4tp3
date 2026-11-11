@@ -42,4 +42,20 @@ describe("SelectorCafe", () => {
 
     expect(botonAgregar).toBeEnabled();
   });
+
+  it("agrega el café que coincide con las selecciones", async () => {
+    const user = userEvent.setup();
+    const onAgregar = vi.fn();
+
+    render(<SelectorCafe cafes={cafes} onAgregar={onAgregar} />);
+
+    await user.click(screen.getByRole("button", { name: "Expreso" }));
+    await user.click(screen.getByRole("button", { name: "Mediano" }));
+    await user.click(screen.getByRole("button", { name: "Colombia" }));
+
+    await user.click(screen.getByRole("button", { name: /agregar café/i }));
+
+    expect(onAgregar).toHaveBeenCalledWith(cafes[0]);
+  });
+
 });
