@@ -1,5 +1,6 @@
 
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import TarjetaPasteleria from "../../components/TarjetaPasteleria";
 import type { Pasteleria } from "../../schemas/productoSchema";
@@ -28,4 +29,21 @@ describe("TarjetaPasteleria", () => {
       screen.getByText("$ 2.500"),
     ).toBeInTheDocument();
   });
+
+  it("llama a onAgregar con el producto al hacer clic", async () => {
+    const user = userEvent.setup();
+    const onAgregar = vi.fn();
+
+    render(
+      <TarjetaPasteleria
+        producto={producto}
+        onAgregar={onAgregar}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Agregar" }));
+
+    expect(onAgregar).toHaveBeenCalledWith(producto);
+  });
 });
+
