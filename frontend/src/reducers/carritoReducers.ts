@@ -21,8 +21,22 @@ export function carritoReducer(
   accion: AccionCarrito,
 ): EstadoCarrito {
   switch (accion.type) {
-    case "AGREGAR":
-      return estado;
+   
+case "AGREGAR": {
+  const itemExistente = estado.find(
+    (item) => item.producto.id === accion.producto.id,
+  );
+
+  if (itemExistente) {
+    return estado.map((item) =>
+      item.producto.id === accion.producto.id
+        ? { ...item, cantidad: item.cantidad + 1 }
+        : item,
+    );
+  }
+
+  return [...estado, { producto: accion.producto, cantidad: 1 }];
+}
 
     case "SUMAR":
       return estado;
