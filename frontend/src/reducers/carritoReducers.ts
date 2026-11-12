@@ -38,16 +38,39 @@ case "AGREGAR": {
   return [...estado, { producto: accion.producto, cantidad: 1 }];
 }
 
-    case "SUMAR":
-      return estado;
+     case "SUMAR":
+      return estado.map((item) =>
+        item.producto.id === accion.productoId
+          ? { ...item, cantidad: item.cantidad + 1 }
+          : item,
+      );
 
     case "RESTAR":
-      return estado;
+      return estado
+        .map((item) =>
+          item.producto.id === accion.productoId
+            ? { ...item, cantidad: item.cantidad - 1 }
+            : item,
+        )
+        .filter((item) => item.cantidad > 0);
 
     case "QUITAR":
-      return estado;
+      return estado.filter(
+        (item) => item.producto.id !== accion.productoId,
+      );
 
     default:
       return estado;
-  }
+  }}
+  
+  export function calcularSubtotalItem(item: ItemCarrito): number {
+  return item.producto.precio * item.cantidad;
 }
+
+export function calcularSubtotalCarrito(estado: EstadoCarrito): number {
+  return estado.reduce(
+    (total, item) => total + calcularSubtotalItem(item),
+    0,
+  );
+}
+
