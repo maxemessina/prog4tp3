@@ -1,11 +1,26 @@
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+
+import {
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
 import { obtenerProductos } from "../../api/api";
 import App from "../../App";
 
 vi.mock("../../api/api", () => ({
   obtenerProductos: vi.fn(),
+  crearPedido: vi.fn(),
+  obtenerPedido: vi.fn(),
 }));
 
 const productos = [
@@ -69,11 +84,15 @@ describe("App: menú y mesa", () => {
   });
 
   it("muestra un indicador accesible mientras carga el catálogo", () => {
-    vi.mocked(obtenerProductos).mockReturnValue(new Promise(() => {}));
+    vi.mocked(obtenerProductos).mockReturnValue(
+      new Promise(() => {}),
+    );
 
     render(<App />);
 
-    expect(screen.getByRole("status")).toHaveTextContent(/cargando menú/i);
+    expect(screen.getByRole("status")).toHaveTextContent(
+      /cargando menú/i,
+    );
   });
 
   it("muestra el error de API y permite reintentar", async () => {
@@ -83,14 +102,18 @@ describe("App: menú y mesa", () => {
 
     render(<App />);
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "API no disponible",
+    expect(
+      await screen.findByRole("alert"),
+    ).toHaveTextContent("API no disponible");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /reintentar/i }),
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /reintentar/i }));
-
     await waitFor(() => {
-      expect(screen.getByText("Muffin de chocolate")).toBeInTheDocument();
+      expect(
+        screen.getByText("Muffin de chocolate"),
+      ).toBeInTheDocument();
     });
 
     expect(obtenerProductos).toHaveBeenCalledTimes(2);
@@ -102,7 +125,9 @@ describe("App: menú y mesa", () => {
     render(<App />);
 
     expect(
-      await screen.findByRole("heading", { name: "Elegí tu café" }),
+      await screen.findByRole("heading", {
+        name: "Elegí tu café",
+      }),
     ).toBeInTheDocument();
 
     expect(

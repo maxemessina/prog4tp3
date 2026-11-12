@@ -1,3 +1,4 @@
+
 import { useCarrito } from "../context/carritoContext";
 import { formatearPrecio } from "../dominio/formatearPrecio";
 
@@ -15,10 +16,6 @@ export function Carrito() {
       <section>
         <h2>Carrito</h2>
         <p>El carrito está vacío</p>
-
-        <button type="button" disabled>
-          Confirmar pedido
-        </button>
       </section>
     );
   }
@@ -31,13 +28,13 @@ export function Carrito() {
         <article key={item.producto.id}>
           <h3>{item.producto.nombre}</h3>
 
-          <p>
-            Cantidad: {item.cantidad}
-          </p>
+          <p>Cantidad: {item.cantidad}</p>
 
           <p>
             Subtotal:{" "}
-            {formatearPrecio(item.producto.precio * item.cantidad)}
+            {formatearPrecio(
+              item.producto.precio * item.cantidad,
+            )}
           </p>
 
           <button
@@ -66,13 +63,7 @@ export function Carrito() {
         </article>
       ))}
 
-      <h3>
-        Total: {formatearPrecio(subtotal)}
-      </h3>
-
-      <button type="button">
-        Confirmar pedido
-      </button>
+      <h3>Total: {formatearPrecio(subtotal)}</h3>
     </section>
   );
 }

@@ -5,7 +5,10 @@ import SelectorCafe from "./components/SelectorCafe";
 import TarjetaPasteleria from "./components/TarjetaPasteleria";
 import { CarritoProvider, useCarrito } from "./context/carritoContext";
 import { Carrito } from "./components/carrito";
+import { ConfirmacionPedido } from "./components/ConfirmacionPedido";
+import { crearPedido, obtenerPedido } from "./api/api";
 import type { Cafe, Pasteleria } from "./schemas/productoSchema";
+import type { PedidoItem } from "./schemas/pedidoSchema";
 
 export default function App() {
   return (
@@ -18,13 +21,24 @@ export default function App() {
 function MenuConCarrito() {
   const mesa = leerMesaDesdeBusqueda(window.location.search);
   const { estado, reintentar } = useMenu();
-  const { agregarProducto } = useCarrito();
+
+  const {
+    carrito,
+    agregarProducto,
+    vaciarCarrito,
+  } = useCarrito();
+
+  const items: PedidoItem[] = carrito.map((item) => ({
+    productoId: item.producto.id,
+    cantidad: item.cantidad,
+  }));
 
   const cafes =
     estado.estado === "listo"
       ? estado.productos.filter(
           (producto): producto is Cafe =>
-            producto.tipo === "expreso" || producto.tipo === "filtrado",
+            producto.tipo === "expreso" ||
+            producto.tipo === "filtrado",
         )
       : [];
 
@@ -89,6 +103,14 @@ function MenuConCarrito() {
 
       <section className="mt-4">
         <Carrito />
+
+        <ConfirmacionPedido
+          mesaId={mesa}
+          items={items}
+          crearPedido={crearPedido}
+          obtenerPedido={obtenerPedido}
+          vaciarCarrito={vaciarCarrito}
+        />
       </section>
     </main>
   );

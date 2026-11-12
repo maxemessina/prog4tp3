@@ -1,3 +1,4 @@
+
 import {
   createContext,
   useContext,
@@ -20,6 +21,7 @@ type CarritoContextType = {
   sumarProducto: (productoId: number) => void;
   restarProducto: (productoId: number) => void;
   quitarProducto: (productoId: number) => void;
+  vaciarCarrito: () => void;
 };
 
 const CarritoContext = createContext<CarritoContextType | undefined>(
@@ -49,6 +51,10 @@ export function CarritoProvider({ children }: CarritoProviderProps) {
     dispatch({ type: "QUITAR", productoId });
   }
 
+  function vaciarCarrito() {
+    dispatch({ type: "VACIAR" });
+  }
+
   const subtotal = calcularSubtotalCarrito(carrito);
 
   return (
@@ -60,6 +66,7 @@ export function CarritoProvider({ children }: CarritoProviderProps) {
         sumarProducto,
         restarProducto,
         quitarProducto,
+        vaciarCarrito,
       }}
     >
       {children}
