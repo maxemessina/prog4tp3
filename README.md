@@ -55,16 +55,14 @@ diseño visual complejo.
 
 - **API base:** el contrato usado por el frontend está implementado y cuenta
   con pruebas.
-- **Frontend base:** configuración de Vite/React/TypeScript, estilos Bootstrap
-  y Sass, esquemas Zod de productos y pedidos, cliente API, lectura de mesa,
-  formato de moneda, carga del menú con reintento y pantalla inicial del
-  catálogo.
-- **E2E:** Playwright está configurado y tiene un smoke test contra la API real
-  que comprueba el menú de una mesa y el desborde horizontal a 375 px. Falta
-  ampliar el recorrido cuando estén integrados selector, carrito y pedido.
-- **Pendiente:** selector de café, pastelería interactiva, carrito, envío y
-  seguimiento del pedido, pruebas completas de esas funcionalidades y revisión
-  responsive final.
+- **Frontend integrado:** configuración de Vite/React/TypeScript, Bootstrap y
+  Sass, contratos Zod, cliente API, lectura de mesa, catálogo, selección de
+  café y pastelería, carrito, confirmación y consulta del estado del pedido.
+- **Pruebas E2E:** Playwright recorre la selección de café y muffin, el carrito,
+  el envío y la consulta del pedido usando la API real; también comprueba que
+  el flujo no produzca scroll horizontal a 375 px.
+- **Verificación local:** pruebas unitarias, de componentes e integración,
+  build del frontend, pruebas, typecheck y build del backend, y recorrido E2E.
 
 ## Estructura
 
@@ -94,7 +92,7 @@ frontend/
       unit/
       components/
       integration/
-  e2e/                   # Recorridos Playwright contra la API real
+  e2e/                   # Flujo completo Playwright contra la API real
   package.json
 ```
 
@@ -199,7 +197,7 @@ Abrir `http://localhost:5173`. Vite reenvía las rutas de API al backend.
 
 ## División del trabajo
 
-### Máximo Messina — base e integración
+### Máximo Messina — base e integración (integrado)
 
 - Mantener el contrato API/frontend y documentar cambios compatibles.
 - Preparar y mantener la infraestructura de `backend/` y `frontend/`.
@@ -214,7 +212,7 @@ Abrir `http://localhost:5173`. Vite reenvía las rutas de API al backend.
   estén integrados los módulos del equipo; cerrar la documentación y revisión
   responsive.
 
-### Valentina Guerrieri — catálogo y selección
+### Valentina Guerrieri — catálogo y selección (implementado)
 
 - Presentar los productos cargados desde la API y distinguir café expreso,
   filtrado y pastelería usando `tipo`.
@@ -226,7 +224,7 @@ Abrir `http://localhost:5173`. Vite reenvía las rutas de API al backend.
 - Cubrir la selección y pastelería con pruebas unitarias/de componente y
   pruebas de integración con MSW cuando corresponda.
 
-### Tomás Astudillo — carrito
+### Tomás Astudillo — carrito (implementado)
 
 - Crear el reducer puro del carrito y su Context compartido.
 - Implementar agregar productos, acumular cantidades, sumar, restar y quitar.
@@ -236,7 +234,7 @@ Abrir `http://localhost:5173`. Vite reenvía las rutas de API al backend.
 - Probar reducer y componente del carrito: carrito vacío, cambios de cantidad,
   eliminación y subtotales orientativos.
 
-### Priscila Arrimada — confirmación y seguimiento
+### Priscila Arrimada — confirmación y seguimiento (implementado)
 
 - Conectar la confirmación al cliente API y enviar `mesaId` cuando exista junto
   con los ítems del carrito.
