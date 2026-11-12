@@ -16,6 +16,7 @@ export function ResumenPedido({
   const [pedidoActual, setPedidoActual] = useState<Pedido>(pedido);
   const [actualizando, setActualizando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mensaje, setMensaje] = useState<string | null>(null);
 
   async function manejarActualizacion() {
     if (!obtenerPedido || actualizando) {
@@ -24,6 +25,7 @@ export function ResumenPedido({
 
     setActualizando(true);
     setError(null);
+    setMensaje(null);
 
     try {
       const resultado = await actualizarPedido(
@@ -32,6 +34,16 @@ export function ResumenPedido({
       );
 
       setPedidoActual(resultado);
+
+      if (resultado.estado === pedidoActual.estado) {
+        setMensaje(
+          `Estado consultado correctamente. El pedido continúa ${resultado.estado}.`,
+        );
+      } else {
+        setMensaje(
+          `El estado del pedido cambió a ${resultado.estado}.`,
+        );
+      }
     } catch {
       setError("No se pudo actualizar el estado del pedido.");
     } finally {
@@ -57,7 +69,13 @@ export function ResumenPedido({
         </button>
       )}
 
-      {error && <p role="alert">{error}</p>}
+      {mensaje && (
+        <p role="status">{mensaje}</p>
+      )}
+
+      {error && (
+        <p role="alert">{error}</p>
+      )}
     </section>
   );
 }
