@@ -1,9 +1,11 @@
 
 import { describe, expect, it, vi } from "vitest";
 import { confirmarPedido } from "../../pedidos/confirmarPedido";
+import { crearControladorConfirmacion } from "../../pedidos/controladorConfirmacion";
 
 describe("confirmarPedido", () => {
 
+  //Confirmación exitosa
   it("vacía el carrito únicamente cuando la API confirma el pedido", async () => {
     const items = [
       { productoId: 5, cantidad: 2 },
@@ -32,6 +34,7 @@ describe("confirmarPedido", () => {
     expect(resultado).toEqual(pedidoCreado);
   });
 
+  //Error al confirmar el pedido
   it("conserva el carrito cuando la API rechaza el pedido", async () => {
     const items = [
       { productoId: 5, cantidad: 2 },
@@ -51,4 +54,47 @@ describe("confirmarPedido", () => {
     expect(vaciarCarrito).not.toHaveBeenCalled();
   });
 
+  //Evitar confirmaciones duplicadas
+  it("evita enviar dos veces un pedido mientras se confirma", async () => {
+    const items = [
+      { productoId: 5, cantidad: 2 },
+    ];
+
+    const pedidoCreado = {
+      id: 3,
+      mesaId: 4,
+      items,
+      estado: "pendiente",
+      total: 14720,
+    };
+
+    let resolverPedido!: (pedido: typeof pedidoCreado) => void;
+
+    const crearPedido = vi.fn().mockImplementation(
+      () => new Promise<typeof pedidoCreado>((resolve) => {
+        resolverPedido = resolve;
+      }),
+    );
+
+    const vaciarCarrito = vi.fn();
+
+    const controlador = crearControladorConfirmacion(
+      crearPedido,
+      vaciarCarrito,
+    );
+
+    const primeraConfirmacion = controlador.confirmar(4, items);
+    const segundaConfirmacion = controlador.confirmar(4, items);
+
+    expect(crearPedido).toHaveBeenCalledTimes(1);
+
+    resolverPedido(pedidoCreado);
+
+    await expect(primeraConfirmacion).resolves.toEqual(pedidoCreado);
+    await expect(segundaConfirmacion).resolves.toEqual(pedidoCreado);
+
+    expect(vaciarCarrito).toHaveBeenCalledOnce();
+  });
+
 });
+
