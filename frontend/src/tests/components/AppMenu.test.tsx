@@ -1,3 +1,4 @@
+
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { obtenerProductos } from "../../api/api";
@@ -16,6 +17,21 @@ const productos = [
   },
 ];
 
+const cafes = [
+  {
+    id: 1,
+    tipo: "expreso" as const,
+    nombre: "Café expreso Mediano Colombia",
+    tamanio: "Mediano" as const,
+    gramosCafe: 27,
+    variedad: {
+      nombre: "Colombia" as const,
+      descripcion: "Acidez media, cuerpo equilibrado y notas cítricas",
+    },
+    precio: 7360,
+  },
+];
+
 describe("App: menú y mesa", () => {
   beforeEach(() => {
     vi.mocked(obtenerProductos).mockReset();
@@ -31,7 +47,10 @@ describe("App: menú y mesa", () => {
     expect(
       screen.getByRole("heading", { name: "Mesa 4" }),
     ).toBeInTheDocument();
-    expect(await screen.findByText("Muffin de chocolate")).toBeInTheDocument();
+
+    expect(
+      await screen.findByText("Muffin de chocolate"),
+    ).toBeInTheDocument();
   });
 
   it("indica retiro en barra cuando la mesa no es válida", async () => {
@@ -43,7 +62,10 @@ describe("App: menú y mesa", () => {
     expect(
       screen.getByRole("heading", { name: "Retiro en barra" }),
     ).toBeInTheDocument();
-    expect(await screen.findByText("Muffin de chocolate")).toBeInTheDocument();
+
+    expect(
+      await screen.findByText("Muffin de chocolate"),
+    ).toBeInTheDocument();
   });
 
   it("muestra un indicador accesible mientras carga el catálogo", () => {
@@ -64,11 +86,37 @@ describe("App: menú y mesa", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "API no disponible",
     );
+
     fireEvent.click(screen.getByRole("button", { name: /reintentar/i }));
 
     await waitFor(() => {
       expect(screen.getByText("Muffin de chocolate")).toBeInTheDocument();
     });
+
     expect(obtenerProductos).toHaveBeenCalledTimes(2);
+  });
+
+  it("muestra el selector de café cuando hay cafés disponibles", async () => {
+    vi.mocked(obtenerProductos).mockResolvedValue(cafes);
+
+    render(<App />);
+
+    expect(
+      await screen.findByRole("heading", { name: "Elegí tu café" }),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByRole("button", { name: "Expreso" }),
+    ).toBeInTheDocument();
+  });
+
+  it("muestra la tarjeta de pastelería con su botón para agregar", async () => {
+    vi.mocked(obtenerProductos).mockResolvedValue(productos);
+
+    render(<App />);
+
+    expect(
+      await screen.findByRole("button", { name: "Agregar" }),
+    ).toBeInTheDocument();
   });
 });
