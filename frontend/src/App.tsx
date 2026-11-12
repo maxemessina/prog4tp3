@@ -3,11 +3,22 @@ import { leerMesaDesdeBusqueda } from "./dominio/mesa";
 import { useMenu } from "./menu/useMenu";
 import SelectorCafe from "./components/SelectorCafe";
 import TarjetaPasteleria from "./components/TarjetaPasteleria";
+import { CarritoProvider, useCarrito } from "./context/carritoContext";
+import { Carrito } from "./components/carrito";
 import type { Cafe, Pasteleria } from "./schemas/productoSchema";
 
 export default function App() {
+  return (
+    <CarritoProvider>
+      <MenuConCarrito />
+    </CarritoProvider>
+  );
+}
+
+function MenuConCarrito() {
   const mesa = leerMesaDesdeBusqueda(window.location.search);
   const { estado, reintentar } = useMenu();
+  const { agregarProducto } = useCarrito();
 
   const cafes =
     estado.estado === "listo"
@@ -50,9 +61,7 @@ export default function App() {
           {cafes.length > 0 && (
             <SelectorCafe
               cafes={cafes}
-              onAgregar={(cafe) =>
-                console.log("Café seleccionado:", cafe)
-              }
+              onAgregar={agregarProducto}
             />
           )}
 
@@ -68,9 +77,7 @@ export default function App() {
                   >
                     <TarjetaPasteleria
                       producto={producto}
-                      onAgregar={(producto) =>
-                        console.log("Producto seleccionado:", producto)
-                      }
+                      onAgregar={agregarProducto}
                     />
                   </div>
                 ))}
@@ -79,7 +86,10 @@ export default function App() {
           )}
         </>
       )}
+
+      <section className="mt-4">
+        <Carrito />
+      </section>
     </main>
   );
 }
-
