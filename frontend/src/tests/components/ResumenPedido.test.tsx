@@ -22,7 +22,7 @@ describe("ResumenPedido", () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getByText("pendiente"),
+      screen.getByText("Estado: pendiente"),
     ).toBeInTheDocument();
 
     expect(
