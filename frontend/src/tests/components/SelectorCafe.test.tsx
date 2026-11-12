@@ -41,6 +41,19 @@ describe("SelectorCafe", () => {
     await user.click(screen.getByRole("button", { name: "Colombia" }));
 
     expect(botonAgregar).toBeEnabled();
+    expect(
+      screen.getByRole("button", { name: "Expreso" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(
+      screen.getByRole("button", { name: "Mediano" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(
+      screen.getByRole("button", { name: "Colombia" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(
+      screen.getByText(cafes[0].variedad.descripcion),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Precio:.*7\.360/)).toBeInTheDocument();
   });
 
   it("agrega el café que coincide con las selecciones", async () => {
