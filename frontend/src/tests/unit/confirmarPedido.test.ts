@@ -5,7 +5,6 @@ import { crearControladorConfirmacion } from "../../pedidos/controladorConfirmac
 
 describe("confirmarPedido", () => {
 
-  //Confirmación exitosa
   it("vacía el carrito únicamente cuando la API confirma el pedido", async () => {
     const items = [
       { productoId: 5, cantidad: 2 },
@@ -34,7 +33,6 @@ describe("confirmarPedido", () => {
     expect(resultado).toEqual(pedidoCreado);
   });
 
-  //Error al confirmar el pedido
   it("conserva el carrito cuando la API rechaza el pedido", async () => {
     const items = [
       { productoId: 5, cantidad: 2 },
@@ -54,7 +52,6 @@ describe("confirmarPedido", () => {
     expect(vaciarCarrito).not.toHaveBeenCalled();
   });
 
-  //Evitar confirmaciones duplicadas
   it("evita enviar dos veces un pedido mientras se confirma", async () => {
     const items = [
       { productoId: 5, cantidad: 2 },
@@ -96,5 +93,43 @@ describe("confirmarPedido", () => {
     expect(vaciarCarrito).toHaveBeenCalledOnce();
   });
 
-});
+  it("permite reintentar la confirmación después de un error", async () => {
+    const items = [
+      { productoId: 5, cantidad: 2 },
+    ];
 
+    const pedidoCreado = {
+      id: 3,
+      mesaId: 4,
+      items,
+      estado: "pendiente",
+      total: 14720,
+    };
+
+    const crearPedido = vi.fn()
+      .mockRejectedValueOnce(
+        new Error("Error temporal del servidor"),
+      )
+      .mockResolvedValueOnce(pedidoCreado);
+
+    const vaciarCarrito = vi.fn();
+
+    const controlador = crearControladorConfirmacion(
+      crearPedido,
+      vaciarCarrito,
+    );
+
+    await expect(
+      controlador.confirmar(4, items),
+    ).rejects.toThrow("Error temporal del servidor");
+
+    expect(vaciarCarrito).not.toHaveBeenCalled();
+
+    const resultado = await controlador.confirmar(4, items);
+
+    expect(crearPedido).toHaveBeenCalledTimes(2);
+    expect(vaciarCarrito).toHaveBeenCalledOnce();
+    expect(resultado).toEqual(pedidoCreado);
+  });
+
+});
