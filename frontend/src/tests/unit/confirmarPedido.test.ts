@@ -3,8 +3,11 @@ import { describe, expect, it, vi } from "vitest";
 import { confirmarPedido } from "../../pedidos/confirmarPedido";
 
 describe("confirmarPedido", () => {
+
   it("vacía el carrito únicamente cuando la API confirma el pedido", async () => {
-    const items = [{ productoId: 5, cantidad: 2 }];
+    const items = [
+      { productoId: 5, cantidad: 2 },
+    ];
 
     const pedidoCreado = {
       id: 3,
@@ -28,4 +31,24 @@ describe("confirmarPedido", () => {
     expect(vaciarCarrito).toHaveBeenCalledOnce();
     expect(resultado).toEqual(pedidoCreado);
   });
+
+  it("conserva el carrito cuando la API rechaza el pedido", async () => {
+    const items = [
+      { productoId: 5, cantidad: 2 },
+    ];
+
+    const crearPedido = vi.fn().mockRejectedValue(
+      new Error("No se pudo confirmar el pedido"),
+    );
+
+    const vaciarCarrito = vi.fn();
+
+    await expect(
+      confirmarPedido(4, items, crearPedido, vaciarCarrito),
+    ).rejects.toThrow("No se pudo confirmar el pedido");
+
+    expect(crearPedido).toHaveBeenCalledWith(4, items);
+    expect(vaciarCarrito).not.toHaveBeenCalled();
+  });
+
 });
