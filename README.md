@@ -1,133 +1,248 @@
-# Reentrega Parcial I — API REST de Cafetería Origen
+# TP3 — Cafetería Origen: menú de mesa
 
-API REST desarrollada con TypeScript, Express y Zod para consultar el catálogo
-de productos de la cafetería Origen, registrar pedidos y consultar reportes de
-ventas. La solución aplica programación orientada a objetos, separación por
-capas y pruebas unitarias y de integración.
+Aplicación web para que los clientes de la cafetería Origen consulten el menú
+desde el QR de su mesa, armen el pedido en el celular y lo envíen a la API del
+grupo. El objetivo principal del TP3 es construir y probar el frontend con
+React, TypeScript y TDD; la API del parcial se conserva como backend del
+proyecto y se amplía con los cambios que necesita el menú.
 
-## Funcionalidad
+## Alcance del TP3
 
-- Catálogo en memoria de 20 productos:
-  - 9 cafés expresos (3 tamaños × 3 variedades).
-  - 9 cafés filtrados (3 tamaños × 3 variedades).
-  - Muffin de chocolate y porción de torta selva negra.
-- Precios calculados según las cantidades y valores indicados en la
-  [consigna](./consigna.md).
-- Creación de pedidos con items, estado e importe total.
-- Consulta de pedidos y reportes de facturación y unidades vendidas.
-- Datos almacenados en memoria: los pedidos se reinician al detener el
-  servidor.
+El menú debe permitir:
 
-## API
+1. **Identificar mesa o retiro:** leer `?mesa=N` desde la URL y mostrar la
+   mesa. Si falta o no es válida, indicar retiro en barra.
+2. **Consultar el catálogo real:** cargar `GET /productos`, mostrar un estado
+   de carga, y ante un error explicar el problema y permitir reintentar.
+3. **Elegir café:** seleccionar expreso o filtrado, tamaño (pocillo, mediano o
+   taza grande) y origen (Brasil, Colombia o Etiopía). Mostrar la descripción
+   del origen, el precio que devuelve la API y no habilitar “Agregar” hasta
+   completar las opciones.
+4. **Elegir pastelería:** ofrecer muffin de chocolate y porción de torta selva
+   negra con el precio de la API.
+5. **Administrar el carrito:** mostrar cantidades y subtotales orientativos,
+   sumar, restar y quitar productos, mostrar el subtotal y no confirmar un
+   carrito vacío.
+6. **Confirmar:** enviar mesa e ítems a `POST /pedidos` y mostrar el ID, estado
+   y total que devuelve el servidor.
+7. **Seguir el pedido:** consultar `GET /pedidos/:id` desde la confirmación sin
+   recargar la página.
+8. **Conservar el carrito ante errores:** mostrar el mensaje del backend si se
+   rechaza un pedido, sin perder los productos seleccionados.
+9. **Adaptarse al celular:** funcionar a 375 px de ancho, sin scroll
+   horizontal y con controles accesibles.
 
-| Método | Ruta | Respuesta |
+La interfaz prioriza que el flujo sea claro y funcione; el foco no es lograr un
+diseño visual complejo.
+
+## Tecnologías y criterios técnicos
+
+- Frontend: Vite, React y TypeScript con `strict: true`, sin `any`.
+- Bootstrap personalizado con Sass. Los colores de Origen se definen como
+  variables antes de importar Bootstrap.
+- Zod 4: un esquema por respuesta de API; los tipos TypeScript se infieren de
+  esos esquemas. Validar todas las respuestas antes de usarlas.
+- Un único módulo cliente para las llamadas HTTP: los componentes no llaman a
+  `fetch` directamente.
+- Estado del menú como unión discriminada: `cargando`, `error` con mensaje y
+  `listo` con productos.
+- Carrito en Context, preferentemente con un reducer puro para que su lógica se
+  pueda probar de forma aislada.
+- Dependencias del frontend fijadas en `frontend/package.json`: Vite 7,
+  Vitest 3, MSW 2 y Zod 4.
+
+## Estado de implementación
+
+- **API base:** el contrato usado por el frontend está implementado y cuenta
+  con pruebas.
+- **Frontend integrado:** configuración de Vite/React/TypeScript, Bootstrap y
+  Sass, contratos Zod, cliente API, lectura de mesa, catálogo, selección de
+  café y pastelería, carrito, confirmación y consulta del estado del pedido.
+- **Pruebas E2E:** Playwright recorre la selección de café y muffin, el carrito,
+  el envío y la consulta del pedido usando la API real; también comprueba que
+  el flujo no produzca scroll horizontal a 375 px.
+- **Verificación local:** pruebas unitarias, de componentes e integración,
+  build del frontend, pruebas, typecheck y build del backend, y recorrido E2E.
+
+## Estructura
+
+```text
+backend/
+  src/
+    models/              # Productos, cafés, pedidos y reglas de dominio
+    routes/              # Endpoints HTTP
+    schemas/             # Validación de solicitudes
+    services/            # Catálogo, pedidos y reportes
+  tests/
+    unit/
+    integration/
+  package.json
+
+frontend/
+  src/
+    api/                 # Cliente HTTP único
+    components/          # Componentes de interfaz
+    context/             # Context compartido del carrito
+    dominio/             # Mesa, precios y funciones puras
+    menu/                # Estado y carga del catálogo
+    reducers/            # Reducer del carrito
+    schemas/             # Contratos Zod y tipos inferidos
+    styles/              # Tema Bootstrap/Sass
+    tests/
+      unit/
+      components/
+      integration/
+  e2e/                   # Flujo completo Playwright contra la API real
+  package.json
+```
+
+## Backend del parcial: resumen y contrato del menú
+
+El backend es una API REST con Express y TypeScript. Mantiene en memoria un
+catálogo de 20 productos, recibe pedidos y ofrece reportes. Los pedidos se
+reinician al detener el servidor.
+
+| Método | Ruta | Uso |
 |---|---|---|
-| `GET` | `/productos` | Catálogo completo. |
-| `GET` | `/productos/:id` | Producto solicitado. |
-| `POST` | `/pedidos` | Crea un pedido y devuelve su total. |
-| `GET` | `/pedidos` | Lista de pedidos registrados. |
-| `GET` | `/pedidos/:id` | Pedido solicitado. |
-| `GET` | `/reportes/facturacion` | Importe total facturado. |
+| `GET` | `/productos` | Catálogo con tipo y precio calculado. |
+| `GET` | `/productos/:id` | Un producto del catálogo. |
+| `POST` | `/pedidos` | Crear pedido con `items` y `mesaId` opcional. |
+| `GET` | `/pedidos` | Listar pedidos. |
+| `GET` | `/pedidos/:id` | Consultar pedido, estado, ítems y total. |
+| `GET` | `/reportes/facturacion` | Facturación acumulada. |
 | `GET` | `/reportes/mas-vendido` | Producto con más unidades vendidas. |
 
-Los IDs y el body de creación de pedidos se validan. IDs inválidos y pedidos
-con datos incorrectos reciben `400`; los recursos no encontrados reciben
-`404`. La facturación sin pedidos es `$0`; si todavía no hay ventas, el
-endpoint de más vendido informa que no hay ventas registradas.
+Cada producto incluye su `precio` calculado en el backend y `tipo` explícito:
+`expreso`, `filtrado` o `pasteleria`. Los cafés también exponen tamaño,
+gramos, variedad y descripción. El frontend muestra esos datos, pero **no
+calcula precios ni el total final**; el subtotal del carrito es orientativo.
 
-### Ejemplo de pedido
+Ejemplo de un producto:
 
 ```json
 {
+  "id": 5,
+  "tipo": "expreso",
+  "nombre": "Café expreso Mediano Colombia",
+  "tamanio": "Mediano",
+  "gramosCafe": 27,
+  "variedad": {
+    "nombre": "Colombia",
+    "descripcion": "Acidez media, cuerpo equilibrado y notas cítricas y florales"
+  },
+  "precio": 7360
+}
+```
+
+Ejemplo del cuerpo de creación de un pedido:
+
+```json
+{
+  "mesaId": 4,
   "items": [
-    { "productoId": 1, "cantidad": 2 }
+    { "productoId": 5, "cantidad": 2 },
+    { "productoId": 19, "cantidad": 1 }
   ]
 }
 ```
 
-La respuesta `201 Created` incluye el ID, los items, el estado y el total
-calculado usando el precio de cada producto.
+La respuesta del pedido incluye `id`, `mesaId` cuando corresponde, `items`,
+`estado` y `total`. Si no se envía mesa, es un pedido para retirar en barra.
+Los errores usan `{ "error": "mensaje" }`. Con `NODE_ENV=test` se habilitan
+`POST /__test__/reset` y `POST /__test__/seed` para preparar datos
+deterministas de E2E; no se exponen en otros entornos. El proxy de desarrollo
+de Vite reenvía `/productos` y `/pedidos` a `http://localhost:3000`, por lo que
+no se necesita configurar CORS para el desarrollo local.
 
-## Organización
+## Instalación, ejecución y comandos
 
-```text
-src/
-  app.ts                 # Configura Express y compone la aplicación
-  server.ts              # Valida el puerto e inicia el servidor
-  models/                # Producto, cafés, pastelería y tipos de pedido
-  schemas/
-    pedidoSchema.ts      # Validación del body con Zod
-  services/
-    productoService.ts  # Catálogo en memoria y búsqueda
-    pedidoService.ts    # Pedidos, totales y reportes de ventas
-  routes/                # Endpoints de productos, pedidos y reportes
-tests/
-  unit/                  # Modelos y servicios
-  integration/           # Rutas HTTP y flujo integrado con Supertest
-```
-
-`Producto` define el contrato de precio y los productos concretos lo
-implementan mediante polimorfismo. Los tamaños y variedades de café se
-representan con tipos y tablas de datos. `PedidoService` recibe la búsqueda de
-productos que necesita para calcular pedidos y reportes.
-
-`createConfiguredApp()` ensambla el catálogo, los servicios y los routers sin
-abrir un puerto. Esto permite probar la API con Supertest. `server.ts` usa esa
-misma composición y es el único módulo que llama a `listen`.
-
-## Desarrollo con TDD
-
-El trabajo se organizó en ciclos de **Rojo → Verde → Refactor**:
-
-1. **Rojo:** agregar una prueba para un comportamiento y comprobar que falla.
-2. **Verde:** implementar el cambio mínimo que hace pasar la prueba.
-3. **Refactor:** mejorar el diseño sin cambiar el comportamiento, manteniendo
-   las pruebas verdes.
-
-Las fases se registraron en commits separados. La suite combina pruebas
-unitarias de modelos y servicios, pruebas HTTP de las rutas y una prueba de
-integración del flujo completo.
-
-## Instalación y ejecución
-
-Se requiere tener Node.js y npm instalados. Clonar el repositorio y entrar en
-la carpeta del proyecto:
+Se requiere Node.js y npm. Instalar y arrancar la API desde la raíz:
 
 ```bash
-git clone https://github.com/maxemessina/prog4parcial1reentrega.git
-cd prog4parcial1reentrega
-npm ci
-npm run dev
+npm --prefix backend ci
+npm --prefix backend run dev
 ```
 
-El servidor de desarrollo escucha por defecto en `http://localhost:3000`.
-Para usar otro puerto, configurar la variable `PORT` antes de iniciar la
-aplicación. En PowerShell:
+La API escucha por defecto en `http://localhost:3000`. En otra terminal,
+instalar y arrancar el frontend:
 
-```powershell
-$env:PORT=3001
-npm run dev
+```bash
+npm --prefix frontend ci
+npm --prefix frontend run dev
 ```
 
-### Verificación del proyecto
+Abrir `http://localhost:5173`. Vite reenvía las rutas de API al backend.
+
+### Backend
 
 | Comando | Descripción |
 |---|---|
-| `npm run dev` | Inicia el servidor de desarrollo. |
-| `npm test` | Ejecuta todas las pruebas con Vitest. |
-| `npm run coverage` | Ejecuta las pruebas y genera el reporte de cobertura. |
-| `npm run typecheck` | Comprueba los tipos de TypeScript. |
-| `npm run build` | Compila TypeScript en `dist/`. |
-| `npm start` | Inicia el servidor compilado. |
+| `npm --prefix backend run dev` | Servidor de desarrollo. |
+| `npm --prefix backend test` | Pruebas unitarias e integración de API. |
+| `npm --prefix backend run coverage` | Reporte de cobertura. |
+| `npm --prefix backend run typecheck` | Verificación de TypeScript. |
+| `npm --prefix backend run build` | Compilar a `backend/dist/`. |
+| `npm --prefix backend start` | Ejecutar servidor compilado. |
+
+### Frontend
+
+| Comando | Descripción |
+|---|---|
+| `npm --prefix frontend run dev` | Servidor Vite. |
+| `npm --prefix frontend test` | Unitarias, componentes e integración. |
+| `npm --prefix frontend run test:watch` | Vitest interactivo. |
+| `npm --prefix frontend run build` | Verificar TypeScript y compilar a `frontend/dist/`. |
+| `npm --prefix frontend exec playwright install chromium` | Instalar Chromium para la primera ejecución E2E. |
+| `npm --prefix frontend run test:e2e` | E2E con Playwright y la API real. |
 
 ## División del trabajo
 
-- **Máximo Messina:** modelos de productos y precios, tipos del pedido,
-  lógica de negocio de `PedidoService` y composición final de la aplicación
-  para ejecutar el flujo integrado.
-- **Valentina Guerrieri:** catálogo en memoria (`ProductoService`), consulta
-  de productos y pruebas asociadas.
-- **Priscila Arrimada:** endpoints de reportes de facturación y producto más
-  vendido, con sus pruebas.
-- **Tomás Astudillo:** esquema de validación con Zod, endpoints de pedidos y
-  pruebas de integración correspondientes.
+### Máximo Messina — base e integración (integrado)
+
+- Mantener el contrato API/frontend y documentar cambios compatibles.
+- Preparar y mantener la infraestructura de `backend/` y `frontend/`.
+- Implementar los cambios transversales del backend que habilitan el menú:
+  contrato de producto, `mesaId`, total consultable, errores y datos de
+  prueba deterministas.
+- Mantener los esquemas Zod, el cliente HTTP único y las utilidades
+  compartidas del frontend.
+- Integrar las partes del equipo, resolver conflictos y mantener el flujo
+  completo ejecutable.
+- Mantener Playwright y completar el recorrido E2E feliz con la API real cuando
+  estén integrados los módulos del equipo; cerrar la documentación y revisión
+  responsive.
+
+### Valentina Guerrieri — catálogo y selección (implementado)
+
+- Presentar los productos cargados desde la API y distinguir café expreso,
+  filtrado y pastelería usando `tipo`.
+- Implementar la selección de bebida, tamaño y origen del café.
+- Mostrar descripción y precio recibido para cada origen, y habilitar
+  “Agregar” únicamente cuando la selección esté completa.
+- Implementar las opciones de muffin y torta con sus precios y acciones para
+  agregarlos.
+- Cubrir la selección y pastelería con pruebas unitarias/de componente y
+  pruebas de integración con MSW cuando corresponda.
+
+### Tomás Astudillo — carrito (implementado)
+
+- Crear el reducer puro del carrito y su Context compartido.
+- Implementar agregar productos, acumular cantidades, sumar, restar y quitar.
+- Mostrar productos, cantidades, subtotales de línea, subtotal general y
+  estado vacío.
+- Impedir confirmar un carrito vacío y mantener controles accesibles.
+- Probar reducer y componente del carrito: carrito vacío, cambios de cantidad,
+  eliminación y subtotales orientativos.
+
+### Priscila Arrimada — confirmación y seguimiento (implementado)
+
+- Conectar la confirmación al cliente API y enviar `mesaId` cuando exista junto
+  con los ítems del carrito.
+- Evitar envíos duplicados y mostrar el ID, estado y total respondidos por la
+  API.
+- Vaciar el carrito solo al confirmar con éxito; ante un rechazo, mostrar el
+  mensaje y conservar el carrito.
+- Permitir consultar el estado mediante `GET /pedidos/:id` sin recargar la
+  página.
+- Probar el cuerpo enviado, la confirmación, los errores recuperables y la
+  conservación del carrito con MSW.
